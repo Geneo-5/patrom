@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "patrom"
+version = "0.1.0"
+description = "Cheetha compiler to C"
+urls.Homepage = "https://github.com/Geneo-5/patrom"
+urls.Issues = "https://github.com/Geneo-5/patrom/issues"
+urls.Repository = "https://github.com/Geneo-5/patrom.git"
+readme = "README.md"
+requires-python = ">= 3.10"
+dependencies = [
+	"Cheetah3",
+]
+scripts.troer = "patrom.main:cli"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/patrom"]
