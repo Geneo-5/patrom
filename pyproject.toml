@@ -14,7 +14,7 @@ requires-python = ">= 3.10"
 dependencies = [
 	"Cheetah3",
 ]
-scripts.troer = "patrom.main:cli"
+scripts.patrom = "patrom.main:cli"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/patrom"]

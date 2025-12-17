@@ -7,13 +7,24 @@ PYTHON          := $(VENV)/bin/python3
 
 export EBUILDDIR
 
-all: test-base
+tests := hello base
+tests := $(patsubst %,$(BUILDDIR)/test-%/test,$(tests))
 
-export PATH := $(VENV)/bin:$(PATH)
+src   := $(wildcard $(CURDIR)/src/**/*)
 
-test-%: tests/test-%.tmpl | $(BUILDDIR)/test-%
-	@echo ====== Test $*
-	@patrom $< $(BUILDDIR)/test-$*
+.PHONY: test
+test: $(tests)
+	$(foreach t,$(tests), $t$(newline))
+
+$(addsuffix .c,$(tests)): PATH:=$(VENV)/bin:$(PATH)
+$(addsuffix .c,$(tests)): $(BUILDDIR)/test-%/test.c : $(CURDIR)/tests/%.tmpl $(src) \
+                          | $(BUILDDIR)/test-% $(VENV)/bin/patrom
+	@echo ====== GEN $@
+	@patrom $< $@
+
+$(tests): % : %.c $(CURDIR)/tests/test.c
+	@echo ====== CC $<
+	@$(CC) $< $(CURDIR)/tests/test.c -ljson-c -o $@
 
 install: venv
 
@@ -50,3 +61,9 @@ pip-download: | $(DEPENDSDIR)
 	@cd $(DEPENDSDIR); $(PYTHON) -m pip download -r $(CURDIR)/install-depends.txt
 
 .PHONY: all install clobber clean
+
+define newline
+
+
+endef
+

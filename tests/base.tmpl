@@ -1,0 +1,11 @@
+Base test
+#set $tmp = $root.array
+#set $tmp = $tmp[0]
+#if json_object_get_int($tmp) == 1
+test is 1
+#else
+test not 1
+#end if
+$root.int
+$tmp
+
