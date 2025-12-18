@@ -7,14 +7,14 @@ PYTHON          := $(VENV)/bin/python3
 
 export EBUILDDIR
 
-tests := hello base
+tests := hello base pwd_db
 tests_out := $(patsubst %,$(BUILDDIR)/test-%/test,$(tests))
 
 src   := $(wildcard $(CURDIR)/src/**/*)
 
 define run_test
 @echo ====== RUN $(strip $(1)); \
-$(BUILDDIR)/test-$(strip $(1))/test $(CURDIR)/tests/$(strip $(1)).json | tee >(cmp --verbose - $(CURDIR)/tests/$(strip $(1)).expect)
+$(BUILDDIR)/test-$(strip $(1))/test $(CURDIR)/tests/$(strip $(1)).json | tee >(diff - $(CURDIR)/tests/$(strip $(1)).expect)
 endef
 
 .PHONY: test

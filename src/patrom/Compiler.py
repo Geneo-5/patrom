@@ -68,13 +68,18 @@ class CMethodCompiler(AutoMethodCompiler):
 
     def addFilteredChunk(self, chunk, filterArgs=None,
                          rawExpr=None, lineCol=None):
-        print(chunk, filterArgs, rawExpr, lineCol)
         if rawExpr:
             buf  = f"json_object_get_string({chunk})"
             size = f"strlen(json_object_get_string({chunk}))"
         else:
-            buf  = f'"{chunk}"'
-            size = len(chunk)
+            self._callCount = getattr(self, "_callCount", -1) + 1
+            self.addChunk(f'const char * _c{self._callCount} = {chunk};')
+            self.addChunk(f'if (!_c{self._callCount}) {{')
+            self.indent()
+            self.addChunk('return -EFAULT;')
+            self.dedent()
+            buf  = f'_c{self._callCount}'
+            size = f'strlen(_c{self._callCount})'
         self.addChunk(f'ret = write(ctx, {buf}, {size});')
         self.addChunk('if (ret < 0) {')
         self.indent()
@@ -120,7 +125,7 @@ class CMethodCompiler(AutoMethodCompiler):
 
     def addElse(self, expr, dedent=True, lineCol=None):
         if 'if' in expr:
-            expr = re.sub(r'else[ \f\t]+if', 'else if (', expr) + ')'
+            expr = sub(r'else[ \f\t]+if', 'else if (', expr) + ')'
         self.addReIndentingDirective(expr, dedent=dedent, lineCol=lineCol)
 
     def addRepeat(self, expr, lineCol=None):
@@ -214,6 +219,7 @@ class CCompiler(ModuleCompiler):
         return header
 
     def addImportStatement(self, impStatement):
+        impStatement = sub(r'^import', '#include', impStatement)
         if impStatement not in self._importStatements:
             self._importStatements.append(impStatement)
 
