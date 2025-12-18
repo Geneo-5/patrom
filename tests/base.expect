@@ -1,0 +1,37 @@
+Test base
+---------
+
+Test comment
+============
+
+
+Test set
+========
+
+#set $tmp = $root.array
+#set $tmp = $tmp[0]
+
+Test print
+==========
+
+$root.int:      1234
+$tmp:           1
+$root.array[1]: 2
+
+Test loop
+=========
+1
+2
+
+Test repeat
+=========
+
+ - ||
+ - ||
+ - ||
+
+Test if
+=======
+
+$tmp(int) is 1 (1)
+$tmp(int) not 1 (2)

@@ -8,21 +8,26 @@ PYTHON          := $(VENV)/bin/python3
 export EBUILDDIR
 
 tests := hello base
-tests := $(patsubst %,$(BUILDDIR)/test-%/test,$(tests))
+tests_out := $(patsubst %,$(BUILDDIR)/test-%/test,$(tests))
 
 src   := $(wildcard $(CURDIR)/src/**/*)
 
-.PHONY: test
-test: $(tests)
-	$(foreach t,$(tests), $t$(newline))
+define run_test
+@echo ====== RUN $(strip $(1)); \
+$(BUILDDIR)/test-$(strip $(1))/test $(CURDIR)/tests/$(strip $(1)).json | tee >(cmp --verbose - $(CURDIR)/tests/$(strip $(1)).expect)
+endef
 
-$(addsuffix .c,$(tests)): PATH:=$(VENV)/bin:$(PATH)
-$(addsuffix .c,$(tests)): $(BUILDDIR)/test-%/test.c : $(CURDIR)/tests/%.tmpl $(src) \
-                          | $(BUILDDIR)/test-% $(VENV)/bin/patrom
+.PHONY: test
+test: $(tests_out)
+	$(foreach t,$(tests),$(call run_test,$t)$(newline))
+
+$(addsuffix .c,$(tests_out)): PATH:=$(VENV)/bin:$(PATH)
+$(addsuffix .c,$(tests_out)): $(BUILDDIR)/test-%/test.c : $(CURDIR)/tests/%.tmpl $(src) \
+                            | $(BUILDDIR)/test-% $(VENV)/bin/patrom
 	@echo ====== GEN $@
 	@patrom $< $@
 
-$(tests): % : %.c $(CURDIR)/tests/test.c
+$(tests_out): % : %.c $(CURDIR)/tests/test.c
 	@echo ====== CC $<
 	@$(CC) $< $(CURDIR)/tests/test.c -ljson-c -o $@
 

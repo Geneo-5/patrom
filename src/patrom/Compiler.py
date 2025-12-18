@@ -2,6 +2,10 @@ from Cheetah.Compiler import ModuleCompiler, ClassCompiler, AutoMethodCompiler
 from re import sub
 
 class CMethodCompiler(AutoMethodCompiler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._localVar = set()
+
     def addStop(self, expr=None):
         self.addChunk('return 0;')
 
@@ -20,12 +24,14 @@ class CMethodCompiler(AutoMethodCompiler):
                 ("cheetah_write * write", None),
                 ("void * ctx", None),
         ]
+        self._localVar = set()
 
     def _addAutoSetupCode(self):
         if self._initialMethodComment:
             self.addChunk(self._initialMethodComment.replace('##', '//'))
         self.addChunk('int ret;')
-        self.addChunk('struct json_object * tmp;')
+        for v in self._localVar:
+            self.addChunk(f'struct json_object * {v};')
         self.addChunk('')
         self.addChunk('/' + "*" * 40)
         self.addChunk(' * START - generated method body')
@@ -50,10 +56,6 @@ class CMethodCompiler(AutoMethodCompiler):
         self.addChunk('return ret;')
         self.dedent()
 
-        #if not self._isGenerator:
-        #    self.addStop()
-        #self.addChunk('')
-
     def methodSignature(self):
         argStringChunks = []
         for arg in self._argStringList:
@@ -66,9 +68,13 @@ class CMethodCompiler(AutoMethodCompiler):
 
     def addFilteredChunk(self, chunk, filterArgs=None,
                          rawExpr=None, lineCol=None):
-        print(chunk, filterArgs, rawExpr)
-        buf  = f"json_object_get_string({chunk})"
-        size = f"strlen(json_object_get_string({chunk}))"
+        print(chunk, filterArgs, rawExpr, lineCol)
+        if rawExpr:
+            buf  = f"json_object_get_string({chunk})"
+            size = f"strlen(json_object_get_string({chunk}))"
+        else:
+            buf  = f'"{chunk}"'
+            size = len(chunk)
         self.addChunk(f'ret = write(ctx, {buf}, {size});')
         self.addChunk('if (ret < 0) {')
         self.indent()
@@ -80,6 +86,56 @@ class CMethodCompiler(AutoMethodCompiler):
                        silentMode=False):
         self.addFilteredChunk(expr, filterArgs, rawPlaceholder,
                                   lineCol=lineCol)
+
+    def addMethComment(self, comm):
+        offSet = self.setting('commentOffset')
+        self.addChunk('//' + ' '*offSet + comm)
+
+    def addSet(self, expr, exprComponents, setStyle):
+        if setStyle != 0:
+            raise Exception(f"Cannot set with style {'SET_GLOBAL' if setStyle == SET_GLOBAL else 'SET_MODULE'}")
+        self._localVar.add(exprComponents.LVALUE)
+        self.addChunk(expr + ';')
+
+    def addIndentingDirective(self, expr, lineCol=None):
+        if expr and not expr[-1] == '{':
+            expr = expr + ' {'
+        self.addChunk(expr)
+        self.indent()
+
+    def addReIndentingDirective(self, expr, dedent=True, lineCol=None):
+        self.commitStrConst()
+        if not expr[-1] == '{':
+            expr = expr + ' {'
+        if dedent:
+            self.dedent()
+            self.appendToPrevChunk(' ' + expr)
+        else:
+            self.addChunk(expr)
+        self.indent()
+
+    def addIf(self, expr, lineCol=None):
+        expr = f'if ({expr[3:]})'
+        self.addIndentingDirective(expr, lineCol=lineCol)
+
+    def addElse(self, expr, dedent=True, lineCol=None):
+        if 'if' in expr:
+            expr = re.sub(r'else[ \f\t]+if', 'else if (', expr) + ')'
+        self.addReIndentingDirective(expr, dedent=dedent, lineCol=lineCol)
+
+    def addRepeat(self, expr, lineCol=None):
+        self._repeatCount = getattr(self, "_repeatCount", -1) + 1
+        c = f'_r{self._repeatCount}' 
+        expr = f'for (int {c} = 0; {c} < {expr}; {c}++)'
+        self.addIndentingDirective(expr, lineCol=lineCol)
+
+    def addFor(self, expr, lineCol=None):
+        self._forCount = getattr(self, "_forCount", -1) + 1
+        expr = expr[4:].split(' in ')
+        c = f'_l{self._forCount}' 
+        self._localVar.add(expr[0])
+        expr = f"for (int {c} = 0; {expr[0]} = json_object_array_get_idx({expr[1]}, {c}), {c} < json_object_array_length({expr[1]}); {c}++)"
+        self.addIndentingDirective(expr, lineCol=lineCol)
 
 class CClassCompiler(ClassCompiler):
     methodCompilerClass = CMethodCompiler
@@ -191,6 +247,19 @@ class CCompiler(ModuleCompiler):
         out = sub('\n+\n', '\n\n', out)   # remove all multiple empty line
         return out
 
+    def _getremainded(self, code, remainder):
+        while remainder and remainder[0] == '[':
+            r = remainder.index(']')
+            r, remainder = remainder[1:r], remainder[r + 1:]
+            code = f'json_object_array_get_idx({code}, {r})'
+        if remainder and remainder[0] == '(':
+            r = remainder.index(')')
+            r, remainder = remainder[1:r], remainder[r + 1:]
+            code = f'json_object_get_{r}({code})'
+        if remainder:
+            raise Exception(f"Invalid remainder {remainder}")
+        return code
+
     def genNameMapperVar(self, nameChunks):
         nameChunks.reverse()
         name, useAC, remainder = nameChunks.pop()
@@ -202,45 +271,13 @@ class CCompiler(ModuleCompiler):
         else:
             code = name
             if not nameChunks and remainder:
-                if remainder[0] != '[':
-                    raise Exception(f"Not supported {remainder}")
-                code = f'json_object_array_get_idx({code}, {remainder[1:-1]})'
+                code = self._getremainded(code, remainder)
+
         while nameChunks:
             name, useAC, remainder = nameChunks.pop()
             name = name.split('.')
             for n in name:
                 code = f'json_object_object_get({code}, "{n}")'
             if remainder:
-                if remainder[0] != '[':
-                    raise Exception(f"Not supported {remainder}")
-                code = f'json_object_array_get_idx({code}, {remainder[1:-1]})'
+                code = self._getremainded(code, remainder)
         return (code)
-
-    def addIndentingDirective(self, expr, lineCol=None):
-        if expr and not expr[-1] == '{':
-            expr = expr + ' {'
-        self.addChunk(expr)
-        self.indent()
-
-    def addReIndentingDirective(self, expr, dedent=True, lineCol=None):
-        self.commitStrConst()
-        if not expr[-1] == '{':
-            expr = expr + ' {'
-        if dedent:
-            self.dedent()
-            self.appendToPrevChunk(' ' + expr)
-        else:
-            self.addChunk(expr)
-        self.indent()
-
-    def addIf(self, expr, lineCol=None):
-        expr = f'if ({expr[3:]})'
-        self.addIndentingDirective(expr, lineCol=lineCol)
-
-    def addElse(self, expr, dedent=True, lineCol=None):
-        if 'if' in expr:
-            expr = re.sub(r'else[ \f\t]+if', 'else if (', expr) + ')'
-        self.addReIndentingDirective(expr, dedent=dedent, lineCol=lineCol)
-
-    def addSet(self, expr, exprComponents, setStyle):
-        self.addChunk(expr + ';')

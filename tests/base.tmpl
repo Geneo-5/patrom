@@ -1,11 +1,50 @@
-Base test
-#set $tmp = $root.array
-#set $tmp = $tmp[0]
-#if json_object_get_int($tmp) == 1
-test is 1
-#else
-test not 1
-#end if
-$root.int
-$tmp
+Test base
+---------
 
+Test comment
+============
+
+## The comment
+
+Test set
+========
+
+\#set \$tmp = \$root.array
+#set $tmp = $root.array
+\#set \$tmp = \$tmp[0]
+#set $tmp = $tmp[0]
+
+Test print
+==========
+
+\$root.int:      $root.int
+\$tmp:           $tmp
+\$root.array[1]: $root.array[1]
+
+Test loop
+=========
+#for $tmp in $root.array
+$tmp
+#end for
+
+Test repeat
+=========
+
+#repeat 3
+ - #slurp
+#repeat 2
+|#slurp
+#end repeat
+
+#end repeat
+
+Test if
+=======
+
+#for $tmp in $root.array
+#if $tmp(int) == 1
+\$tmp(int) is 1 ($tmp)
+#else
+\$tmp(int) not 1 ($tmp)
+#end if
+#end for
