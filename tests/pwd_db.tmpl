@@ -1,11 +1,11 @@
 #import <stdio.h>
-#silent char num[3];
+#silent char num[7];
 #silent int i = 0;
 #for $u in $root.users
 ## Manual print offset in loop. Can use _l0 too.
-#silent snprintf(num,sizeof(num),"%02d",i++);
+#silent snprintf(num, sizeof(num), "0%d", i++);
 #echo num
- $u.name:x:$u.id:$u.id:,,,:/home:/bin/sh
-.$u.name $u.name:x:$u.id:$u.id:,,,:/home:/bin/sh
-=$u.id $u.name:x:$u.id:$u.id:,,,:/home:/bin/sh
+ $u.name:x:$u.id:$u.id:,,,:$u.home:$u.shell
+.$u.name $u.name:x:$u.id:$u.id:,,,:$u.home:$u.shell
+=$u.id $u.name:x:$u.id:$u.id:,,,:$u.home:$u.shell
 #end for

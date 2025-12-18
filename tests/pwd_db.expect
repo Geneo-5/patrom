@@ -1,6 +1,6 @@
-00 user1:x:1000:1000:,,,:/home:/bin/sh
-.user1 user1:x:1000:1000:,,,:/home:/bin/sh
-=1000 user1:x:1000:1000:,,,:/home:/bin/sh
-01 user2:x:1001:1001:,,,:/home:/bin/sh
-.user2 user2:x:1001:1001:,,,:/home:/bin/sh
-=1001 user2:x:1001:1001:,,,:/home:/bin/sh
+00 user1:x:1000:1000:,,,:/home/user1:/bin/sh
+.user1 user1:x:1000:1000:,,,:/home/user1:/bin/sh
+=1000 user1:x:1000:1000:,,,:/home/user1:/bin/sh
+01 user2:x:1001:1001:,,,:/home/user2:/bin/sh
+.user2 user2:x:1001:1001:,,,:/home/user2:/bin/sh
+=1001 user2:x:1001:1001:,,,:/home/user2:/bin/sh
