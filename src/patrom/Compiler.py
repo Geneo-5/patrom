@@ -235,7 +235,7 @@ class CCompiler(ModuleCompiler):
     def moduleDocstring(self):
         if not self._moduleDocStringLines:
             return ''
-        return ('\*' + '\n *'.join(self._moduleDocStringLines) + '\n *\\n')
+        return ('/*' + '\n *'.join(self._moduleDocStringLines) + '\n */\n')
 
     def moduleFooter(self):
         return '//ex: filetype=c'

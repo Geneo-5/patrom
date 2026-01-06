@@ -18,6 +18,7 @@ $(BUILDDIR)/test-$(strip $(1))/test $(CURDIR)/tests/$(strip $(1)).json | tee >(d
 endef
 
 .PHONY: test
+test: SHELL:=/bin/bash
 test: $(tests_out)
 	$(foreach t,$(tests),$(call run_test,$t)$(newline))
 

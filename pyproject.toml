@@ -12,7 +12,7 @@ urls.Repository = "https://github.com/Geneo-5/patrom.git"
 readme = "README.md"
 requires-python = ">= 3.10"
 dependencies = [
-	"Cheetah3",
+	"ct3",
 ]
 scripts.patrom = "patrom.main:cli"
 
