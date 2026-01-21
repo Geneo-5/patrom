@@ -1,4 +1,7 @@
 {
 	"int": 1234,
-	"array": [1, 2]
+	"array": [1, 2],
+	"sub":{
+		"string": "test"
+	}
 }

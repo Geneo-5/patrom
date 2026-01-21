@@ -30,7 +30,7 @@ $(addsuffix .c,$(tests_out)): $(BUILDDIR)/test-%/test.c : $(CURDIR)/tests/%.tmpl
 
 $(tests_out): % : %.c $(CURDIR)/tests/test.c
 	@echo ====== CC $<
-	@$(CC) $< $(CURDIR)/tests/test.c -ljson-c -o $@
+	@$(CC) $^ -ljson-c -o $@
 
 install: venv
 

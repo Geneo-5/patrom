@@ -48,3 +48,9 @@ Test if
 \$tmp(int) not 1 ($tmp)
 #end if
 #end for
+
+#if strcmp($root.sub.string(string), "test") == 0
+\$root.sub.string(string) is "test" ($root.sub.string)
+#else
+\$root.sub.string(string) not "test" ($root.sub.string)
+#end if

@@ -267,8 +267,8 @@ class CCompiler(ModuleCompiler):
         return code
 
     def genNameMapperVar(self, nameChunks):
-        nameChunks.reverse()
-        name, useAC, remainder = nameChunks.pop()
+        #nameChunks.reverse()
+        name, useAC, remainder = nameChunks.pop(0)
         if '.' in  name:
             name = name.split('.')
             code = name[0]
@@ -280,7 +280,7 @@ class CCompiler(ModuleCompiler):
                 code = self._getremainded(code, remainder)
 
         while nameChunks:
-            name, useAC, remainder = nameChunks.pop()
+            name, useAC, remainder = nameChunks.pop(0)
             name = name.split('.')
             for n in name:
                 code = f'json_object_object_get({code}, "{n}")'

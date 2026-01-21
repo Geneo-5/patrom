@@ -35,3 +35,5 @@ Test if
 
 $tmp(int) is 1 (1)
 $tmp(int) not 1 (2)
+
+$root.sub.string(string) is "test" (test)
