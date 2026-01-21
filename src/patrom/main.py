@@ -12,11 +12,14 @@ def cli():
             help='Input template file')
     parser.add_argument('OUTPUT', type=FileType('w'),
             help='Output file')
+    parser.add_argument('--method', type=str, default='respond',
+            help='Method name')
     args = parser.parse_args()
     try:
         source = args.TMPL.read()
         compiled = Template.compile(source=source,
                 compilerClass=Compiler.CCompiler,
+                mainMethodName=args.method,
                 returnAClass=False)
         args.OUTPUT.write(compiled.decode())
     except Exception:
