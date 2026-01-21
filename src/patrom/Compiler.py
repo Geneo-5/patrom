@@ -139,7 +139,7 @@ class CMethodCompiler(AutoMethodCompiler):
         expr = expr[4:].split(' in ')
         c = f'_l{self._forCount}' 
         self._localVar.add(expr[0])
-        expr = f"for (int {c} = 0; {expr[0]} = json_object_array_get_idx({expr[1]}, {c}), {c} < json_object_array_length({expr[1]}); {c}++)"
+        expr = f"for (size_t {c} = 0; {expr[0]} = json_object_array_get_idx({expr[1]}, {c}), {c} < json_object_array_length({expr[1]}); {c}++)"
         self.addIndentingDirective(expr, lineCol=lineCol)
 
 class CClassCompiler(ClassCompiler):
