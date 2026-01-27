@@ -48,8 +48,10 @@ class CMethodCompiler(AutoMethodCompiler):
         if chunk[0] == 'u':
             raise Exception('Unicode not supported')
         buf = chunk[3:-3]
-        size = len(buf)
-        buf = buf.replace('\n', '\\n').replace('"', '\\"')
+        buf = buf.replace("\\'", "'")
+        size = len(buf.replace('\\t', 't'))
+        buf = buf.replace("\n", "\\n")
+        buf = buf.replace("\"", "\\\"")
         self.addChunk(f'ret = write(ctx, "{buf}", {size});')
         self.addChunk('if (ret < 0) {')
         self.indent()
