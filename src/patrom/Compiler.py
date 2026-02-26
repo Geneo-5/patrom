@@ -49,7 +49,7 @@ class CMethodCompiler(AutoMethodCompiler):
             raise Exception('Unicode not supported')
         buf = chunk[3:-3]
         buf = buf.replace("\\'", "'")
-        size = len(buf.replace('\\t', 't'))
+        size = len(buf.replace('\\t', 't').replace('\\\\', '\\'))
         buf = buf.replace("\n", "\\n")
         buf = buf.replace("\"", "\\\"")
         self.addChunk(f'ret = write(ctx, "{buf}", {size});')
