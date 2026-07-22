@@ -259,7 +259,10 @@ class CCompiler(ModuleCompiler):
         while remainder and remainder[0] == '[':
             r = remainder.index(']')
             r, remainder = remainder[1:r], remainder[r + 1:]
-            code = f'json_object_array_get_idx({code}, {r})'
+            if r.isdigit():
+                code = f'json_object_array_get_idx({code}, {r})'
+            else:
+                code = f'json_object_object_get({code}, "{r}")'
         if remainder and remainder[0] == '(':
             r = remainder.index(')')
             r, remainder = remainder[1:r], remainder[r + 1:]
