@@ -132,14 +132,14 @@ class CMethodCompiler(AutoMethodCompiler):
 
     def addRepeat(self, expr, lineCol=None):
         self._repeatCount = getattr(self, "_repeatCount", -1) + 1
-        c = f'_r{self._repeatCount}' 
+        c = f'_r{self._repeatCount}'
         expr = f'for (int {c} = 0; {c} < {expr}; {c}++)'
         self.addIndentingDirective(expr, lineCol=lineCol)
 
     def addFor(self, expr, lineCol=None):
         self._forCount = getattr(self, "_forCount", -1) + 1
         expr = expr[4:].split(' in ')
-        c = f'_l{self._forCount}' 
+        c = f'_l{self._forCount}'
         self._localVar.add(expr[0])
         expr = f"for (size_t {c} = 0; {expr[0]} = json_object_array_get_idx({expr[1]}, {c}), {c} < json_object_array_length({expr[1]}); {c}++)"
         self.addIndentingDirective(expr, lineCol=lineCol)
@@ -262,7 +262,9 @@ class CCompiler(ModuleCompiler):
             if r.isdigit():
                 code = f'json_object_array_get_idx({code}, {r})'
             else:
-                code = f'json_object_object_get({code}, "{r}")'
+                if (r[0] == "'") and (r[-1] == "'"):
+                    r = f'"{r[1:-1]}"'
+                code = f'json_object_object_get({code}, {r})'
         if remainder and remainder[0] == '(':
             r = remainder.index(')')
             r, remainder = remainder[1:r], remainder[r + 1:]
