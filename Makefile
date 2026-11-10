@@ -62,7 +62,7 @@ venv: $(VENV)/bin/patrom
 
 .PHONY: pip-download
 pip-download: | $(DEPENDSDIR)
-	@echo ===== Download troer depends
+	@echo ===== Download patrom depends
 	@cd $(DEPENDSDIR); $(PYTHON) -m pip download $(CURDIR)
 	@cd $(DEPENDSDIR); $(PYTHON) -m pip download -r $(CURDIR)/install-depends.txt
 
